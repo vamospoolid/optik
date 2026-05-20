@@ -104,28 +104,42 @@ async function deployToVPS() {
                     `git clone ${GITHUB_REPO} ${REMOTE_DIR}; fi`
                 );
 
-                // 2.3 Install backend dependencies
-                console.log('\n  📦 Installing backend dependencies...');
-                await runRemote(conn, `cd ${REMOTE_DIR}/backend && npm ci --omit=dev || npm install --omit=dev`);
+                // 2.3 Create .env file on VPS
+                console.log('\n  📝 Creating .env file on VPS...');
+                const envContent = [
+                    'DATABASE_URL="postgresql://postgres:admin@localhost:5432/optikpro?schema=public"',
+                    'JWT_ACCESS_SECRET="optikpro_access_secret_2026_!@#"',
+                    'JWT_REFRESH_SECRET="optikpro_refresh_secret_2026_!@#"',
+                    'JWT_ACCESS_EXPIRES_IN="15m"',
+                    'JWT_REFRESH_EXPIRES_IN="7d"',
+                    'ENCRYPTION_KEY="12345678901234567890123456789012"',
+                    'ENCRYPTION_IV="1234567890123456"',
+                    'PORT=3001',
+                ].join('\n');
+                await runRemote(conn, `cat > ${REMOTE_DIR}/backend/.env << 'ENVEOF'\n${envContent}\nENVEOF`);
 
-                // 2.4 Prisma generate & migrate
+                // 2.4 Install backend dependencies (include devDeps for build)
+                console.log('\n  📦 Installing backend dependencies...');
+                await runRemote(conn, `cd ${REMOTE_DIR}/backend && npm install`);
+
+                // 2.5 Prisma generate & migrate
                 console.log('\n  🗄️ Setting up database...');
                 await runRemote(conn, `cd ${REMOTE_DIR}/backend && npx prisma generate`);
                 await runRemote(conn, `cd ${REMOTE_DIR}/backend && npx prisma migrate deploy || true`);
 
-                // 2.5 Build backend
+                // 2.6 Build backend
                 console.log('\n  🔨 Building backend (NestJS)...');
-                await runRemote(conn, `cd ${REMOTE_DIR}/backend && npm run build`);
+                await runRemote(conn, `cd ${REMOTE_DIR}/backend && npx tsc`);
 
-                // 2.6 Install frontend dependencies
+                // 2.7 Install frontend dependencies
                 console.log('\n  📦 Installing frontend dependencies...');
-                await runRemote(conn, `cd ${REMOTE_DIR}/frontend && npm ci || npm install`);
+                await runRemote(conn, `cd ${REMOTE_DIR}/frontend && npm install`);
 
-                // 2.7 Build frontend
+                // 2.8 Build frontend
                 console.log('\n  🔨 Building frontend (Next.js)...');
                 await runRemote(conn, `cd ${REMOTE_DIR}/frontend && NEXT_PUBLIC_API_URL=http://${DOMAIN} npm run build`);
 
-                // 2.8 Restart PM2 processes
+                // 2.9 Restart PM2 processes
                 console.log('\n  🚀 Restarting PM2 processes...');
                 await runRemote(conn, `pm2 delete optik-backend || true`);
                 await runRemote(conn, `cd ${REMOTE_DIR}/backend && pm2 start dist/app.js --name optik-backend`);
