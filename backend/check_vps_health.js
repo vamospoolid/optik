@@ -1,6 +1,6 @@
 const { Client } = require('ssh2');
 const conn = new Client();
-const config = { host: '144.91.73.36', port: 22, username: 'root', password: 'Ahmaddcc07' };
+const config = { host: '173.212.243.240', port: 22, username: 'root', password: 'Ahmad_dcc07' };
 
 conn.on('ready', () => {
     console.log('✅ SSH Connected!');

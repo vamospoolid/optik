@@ -9,10 +9,10 @@ const config = {
     host: '173.212.243.240',
     port: 22,
     username: 'root',
-    password: 'Ahmaddcc07'
+    password: 'Ahmad_dcc07'
 };
 
-const REMOTE_DIR = '/var/www/optik';
+const REMOTE_DIR = '/var/www/optik88';
 
 async function runRemoteCommand(command) {
     return new Promise((resolve, reject) => {
