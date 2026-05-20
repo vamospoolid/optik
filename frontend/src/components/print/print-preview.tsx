@@ -96,19 +96,26 @@ export function PrintPreview({ orderId, isOpen, onOpenChange }: PrintPreviewProp
             }).join("\n")
         }
 
-        const text = encodeURIComponent(
-            `Halo *${data.patient?.name}*,\n\nTerima kasih telah berbelanja di *Optik 88*.\n` +
-            `Berikut adalah ringkasan nota pesanan Anda:\n\n` +
-            `• No. Faktur: *${invoiceNumber}*\n` +
-            `• Tanggal: *${new Date(data.order_date).toLocaleDateString('id-ID')}*\n` +
-            `${itemsStr}\n\n` +
-            `• Total Tagihan: *Rp ${totalAmount}*\n` +
-            `• Uang Muka (DP): *Rp ${dpAmount}*\n` +
-            `• Sisa Pelunasan: *Rp ${remaining}*\n\n` +
-            `*Catatan:* Harap tunjukkan pesan WhatsApp ini saat melakukan pengambilan kacamata Anda.\n\n` +
-            `Salam hangat,\n*Optik 88*`
-        )
+        let messageText = ""
+        if (branchSettings?.wa_template) {
+            messageText = branchSettings.wa_template
+                .replace(/\{\{nama_pasien\}\}/g, data.patient?.name || "")
+                .replace(/\{\{no_invoice\}\}/g, invoiceNumber)
+                .replace(/\{\{total\}\}/g, `Rp ${totalAmount}`)
+        } else {
+            messageText = `Halo *${data.patient?.name}*,\n\nTerima kasih telah berbelanja di *Optik 88*.\n` +
+                `Berikut adalah ringkasan nota pesanan Anda:\n\n` +
+                `• No. Faktur: *${invoiceNumber}*\n` +
+                `• Tanggal: *${new Date(data.order_date).toLocaleDateString('id-ID')}*\n` +
+                `${itemsStr}\n\n` +
+                `• Total Tagihan: *Rp ${totalAmount}*\n` +
+                `• Uang Muka (DP): *Rp ${dpAmount}*\n` +
+                `• Sisa Pelunasan: *Rp ${remaining}*\n\n` +
+                `*Catatan:* Harap tunjukkan pesan WhatsApp ini saat melakukan pengambilan kacamata Anda.\n\n` +
+                `Salam hangat,\n*Optik 88*`
+        }
 
+        const text = encodeURIComponent(messageText)
         window.open(`https://api.whatsapp.com/send?phone=${formattedPhone}&text=${text}`, "_blank")
     }
 

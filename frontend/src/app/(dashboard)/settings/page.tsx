@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import apiClient from "@/lib/api-client"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Settings as SettingsIcon, Save, Shield, Store } from "lucide-react"
+import { Settings as SettingsIcon, Save, Shield, Store, MessageSquare } from "lucide-react"
 import { toast } from "sonner"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
@@ -18,7 +18,9 @@ export default function SettingsPage() {
     name: "",
     address: "",
     phone: "",
-    logo_url: ""
+    logo_url: "",
+    wa_token: "",
+    wa_template: ""
   })
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
   const [resetting, setResetting] = useState(false)
@@ -32,7 +34,9 @@ export default function SettingsPage() {
           name: res.data.name || "",
           address: res.data.address || "",
           phone: res.data.phone || "",
-          logo_url: res.data.logo_url || ""
+          logo_url: res.data.logo_url || "",
+          wa_token: res.data.wa_token || "",
+          wa_template: res.data.wa_template || ""
         })
       } catch (error) {
         toast.error("Gagal memuat pengaturan")
@@ -176,6 +180,39 @@ export default function SettingsPage() {
                     Ganti Kata Sandi
                 </Button>
              </div>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-lg border-0 bg-white rounded-2xl overflow-hidden mt-6">
+          <CardHeader className="p-6 border-b border-slate-50 bg-[#00a39d]/5">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-[#00a39d]/10 rounded-lg text-[#00a39d]">
+                <MessageSquare className="h-4 w-4" />
+              </div>
+              <CardTitle className="text-lg font-bold text-slate-800">Konfigurasi WhatsApp API</CardTitle>
+            </div>
+            <CardDescription className="text-xs font-medium">Pengaturan integrasi pesan WhatsApp otomatis</CardDescription>
+          </CardHeader>
+          <CardContent className="p-6 space-y-4">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold text-slate-500 ml-1">WhatsApp API Token / Key</Label>
+              <Input 
+                value={settings.wa_token} 
+                onChange={e => setSettings({...settings, wa_token: e.target.value})}
+                placeholder="Masukkan Token API dari provider WA Gateway Anda..."
+                className="h-11 rounded-xl bg-slate-50 border-slate-200 font-medium font-mono text-xs" 
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold text-slate-500 ml-1">Template Pesan Otomatis</Label>
+              <textarea 
+                value={settings.wa_template} 
+                onChange={e => setSettings({...settings, wa_template: e.target.value})}
+                placeholder="Halo {{nama_pasien}}, kacamata pesanan Anda sudah..."
+                className="w-full h-32 rounded-xl bg-slate-50 border border-slate-200 font-medium p-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#00a39d]" 
+              />
+              <p className="text-[10px] text-slate-400 font-medium ml-1">Gunakan tag: <span className="font-bold text-slate-600">{"{{nama_pasien}}"}</span>, <span className="font-bold text-slate-600">{"{{no_invoice}}"}</span>, <span className="font-bold text-slate-600">{"{{total}}"}</span></p>
+            </div>
           </CardContent>
         </Card>
         <Card className="shadow-lg border border-red-100 bg-red-50/10 rounded-2xl overflow-hidden mt-8">

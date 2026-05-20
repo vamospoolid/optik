@@ -12,14 +12,16 @@ export class SettingsService {
         return branch;
     }
 
-    static async updateBranchSettings(branchId: string, data: { name?: string, address?: string, phone?: string, logo_url?: string }) {
+    static async updateBranchSettings(branchId: string, data: { name?: string, address?: string, phone?: string, logo_url?: string, wa_token?: string, wa_template?: string }) {
         return prisma.branch.update({
             where: { id: branchId },
             data: {
                 name: data.name,
                 address: data.address,
                 phone: data.phone,
-                logo_url: data.logo_url
+                logo_url: data.logo_url,
+                wa_token: data.wa_token,
+                wa_template: data.wa_template
             }
         });
     }

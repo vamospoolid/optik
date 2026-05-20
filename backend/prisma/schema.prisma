@@ -35,6 +35,8 @@ model Branch {
   address       String?
   phone         String?
   logo_url      String?
+  wa_token      String?
+  wa_template   String?
   created_at    DateTime          @default(now())
   
   users         User[]
