@@ -49,7 +49,7 @@ export default function DashboardLayout({
         { name: "Katalog Lensa", href: "/lenses" },
       ]
     },
-    { name: "Transaksi", href: "/orders", icon: ShoppingCart, roles: ["owner", "admin", "kasir"] },
+    { name: "Transaksi", href: "/dashboard#pos-section", icon: ShoppingCart, roles: ["owner", "admin", "kasir"] },
     { name: "Pengeluaran", href: "/expenses", icon: Activity, roles: ["owner", "admin"] },
     { name: "Klaim BPJS", href: "/bpjs", icon: FileText, roles: ["owner", "admin", "kasir"] },
     { name: "Laporan", href: "/reports", icon: BarChart3, roles: ["owner", "admin"] },

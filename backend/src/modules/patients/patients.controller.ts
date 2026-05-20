@@ -32,7 +32,7 @@ export class PatientController {
             }
 
             const p = page ? parseInt(page as string) : 1;
-            const l = limit ? parseInt(limit as string) : 10;
+            const l = limit ? parseInt(limit as string) : 5000;
             const s = (search as string) || '';
 
             const result = await PatientService.findAll(branch_id, s, p, l);

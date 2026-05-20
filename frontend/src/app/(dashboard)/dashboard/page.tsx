@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Users, ShoppingCart, DollarSign, Activity, ArrowUpRight, TrendingUp, Plus, Clock, Package, AlertTriangle, FileText, ChevronRight } from "lucide-react"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 const data = [
   { name: 'Mei', umum: 400, bpjs: 240, total: 640 },
@@ -24,6 +25,7 @@ import { NewOrderDialog } from "@/components/dialogs/new-order-dialog"
 import { NewPatientDialog } from "@/components/dialogs/new-patient-dialog"
 import { NewExaminationDialog } from "@/components/dialogs/new-examination-dialog"
 import { PrintPreview } from "@/components/print/print-preview"
+import POSTerminal from "@/components/pos/pos-terminal"
 
 function DashboardOverview() {
   const [metrics, setMetrics] = useState<any>(null)
@@ -82,6 +84,16 @@ function DashboardOverview() {
       return () => { socket.off('data_changed'); }
     }
   }, [socket, fetchMetrics])
+
+  useEffect(() => {
+    const handlePosCompleted = () => {
+      fetchMetrics()
+    }
+    window.addEventListener("pos_transaction_completed", handlePosCompleted)
+    return () => {
+      window.removeEventListener("pos_transaction_completed", handlePosCompleted)
+    }
+  }, [fetchMetrics])
 
   if (loading || !metrics) {
     return (
@@ -154,165 +166,198 @@ function DashboardOverview() {
       </div>
 
       {/* Guided Workflow Section */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm overflow-hidden relative group">
+      <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm overflow-hidden relative">
          <div className="absolute top-0 right-0 w-64 h-64 bg-slate-50/50 rounded-full blur-3xl -mr-32 -mt-32"></div>
-         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-            <div>
-               <h3 className="text-sm font-black italic uppercase tracking-tighter text-slate-800">Alur Kerja Terpadu</h3>
-               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Panduan operasional harian Optik88</p>
+         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative z-10">
+            {/* Alur Kerja */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 flex-1">
+              <div className="shrink-0">
+                <h3 className="text-sm font-black italic uppercase tracking-tighter text-slate-800">Alur Kerja Terpadu</h3>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Panduan operasional harian</p>
+              </div>
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                 <div onClick={() => setIsNewPatientOpen(true)} className="flex-1 p-3 rounded-xl bg-slate-50 border border-slate-100 hover:bg-white hover:shadow-md transition-all cursor-pointer flex items-center gap-2">
+                    <div className="h-7 w-7 rounded-lg bg-slate-900 text-white flex items-center justify-center text-xs font-black shrink-0">1</div>
+                    <div className="flex flex-col min-w-0"><span className="text-[10px] font-black text-slate-700 uppercase truncate">Input Pasien</span><span className="text-[9px] text-slate-400 font-bold uppercase">Registrasi</span></div>
+                 </div>
+                 <ChevronRight className="h-3 w-3 text-slate-200 shrink-0" />
+                 <div onClick={() => { setSelectedPatientId(""); setIsNewExamOpen(true) }} className="flex-1 p-3 rounded-xl bg-slate-50 border border-slate-100 hover:bg-white hover:shadow-md transition-all cursor-pointer flex items-center gap-2">
+                    <div className="h-7 w-7 rounded-lg bg-[#00a39d] text-white flex items-center justify-center text-xs font-black shrink-0">2</div>
+                    <div className="flex flex-col min-w-0"><span className="text-[10px] font-black text-slate-700 uppercase truncate">Periksa Mata</span><span className="text-[9px] text-slate-400 font-bold uppercase">Refraksi</span></div>
+                 </div>
+                 <ChevronRight className="h-3 w-3 text-slate-200 shrink-0" />
+                 <div onClick={() => router.push('/orders')} className="flex-1 p-3 rounded-xl bg-slate-50 border border-slate-100 hover:bg-white hover:shadow-md transition-all cursor-pointer flex items-center gap-2">
+                    <div className="h-7 w-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs font-black shrink-0">3</div>
+                    <div className="flex flex-col min-w-0"><span className="text-[10px] font-black text-slate-700 uppercase truncate">Transaksi POS</span><span className="text-[9px] text-slate-400 font-bold uppercase">Penjualan</span></div>
+                 </div>
+              </div>
             </div>
-            <div className="flex flex-1 max-w-2xl items-center gap-2">
-               {/* Step 1 */}
-               <div className="flex-1 group/step">
-                  <div 
-                     onClick={() => setIsNewPatientOpen(true)}
-                     className="p-4 rounded-xl bg-slate-50 border border-slate-100 hover:bg-white hover:shadow-md transition-all cursor-pointer flex items-center gap-3"
-                  >
-                     <div className="h-8 w-8 rounded-lg bg-slate-900 text-white flex items-center justify-center text-xs font-black">1</div>
-                     <div className="flex flex-col">
-                        <span className="text-[10px] font-black text-slate-700 uppercase">Input Pasien</span>
-                        <span className="text-[9px] text-slate-400 font-bold uppercase">Registrasi</span>
-                     </div>
-                  </div>
-               </div>
-               
-               <ChevronRight className="h-4 w-4 text-slate-200" />
 
-                {/* Step 2 */}
-               <div className="flex-1 group/step">
-                  <div 
-                     onClick={() => {
-                        setSelectedPatientId("")
-                        setIsNewExamOpen(true)
-                     }}
-                     className="p-4 rounded-xl bg-slate-50 border border-slate-100 hover:bg-white hover:shadow-md transition-all cursor-pointer flex items-center gap-3"
-                  >
-                     <div className="h-8 w-8 rounded-lg bg-[#00a39d] text-white flex items-center justify-center text-xs font-black">2</div>
-                     <div className="flex flex-col">
-                        <span className="text-[10px] font-black text-slate-700 uppercase">Periksa Mata</span>
-                        <span className="text-[9px] text-slate-400 font-bold uppercase">Refraksi</span>
-                     </div>
-                  </div>
-               </div>
-
-               <ChevronRight className="h-4 w-4 text-slate-200" />
-
-               {/* Step 3 */}
-               <div className="flex-1 group/step">
-                  <div 
-                     onClick={() => router.push('/orders')}
-                     className="p-4 rounded-xl bg-slate-50 border border-slate-100 hover:bg-white hover:shadow-md transition-all cursor-pointer flex items-center gap-3"
-                  >
-                     <div className="h-8 w-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs font-black">3</div>
-                     <div className="flex flex-col">
-                        <span className="text-[10px] font-black text-slate-700 uppercase">Transaksi POS</span>
-                        <span className="text-[9px] text-slate-400 font-bold uppercase">Penjualan</span>
-                     </div>
-                  </div>
-               </div>
+            {/* Quick Action Buttons */}
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                onClick={() => router.push('/orders')}
+                className="h-10 px-4 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl font-black text-[11px] uppercase tracking-wider shadow-md shadow-emerald-500/20 flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-95"
+              >
+                <ShoppingCart className="h-4 w-4" />
+                <span className="hidden sm:inline">+ Transaksi Baru</span>
+              </Button>
+              <Button
+                onClick={() => setIsNewPatientOpen(true)}
+                variant="outline"
+                className="h-10 px-4 border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl font-bold text-[11px] uppercase tracking-wider flex items-center gap-2 transition-all"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">+ Pasien Baru</span>
+              </Button>
+              <Button
+                onClick={() => router.push('/prescriptions')}
+                variant="outline"
+                className="h-10 px-4 border-[#00a39d]/30 text-[#00a39d] hover:bg-teal-50 rounded-xl font-bold text-[11px] uppercase tracking-wider flex items-center gap-2 transition-all"
+              >
+                <FileText className="h-4 w-4" />
+                <span className="hidden sm:inline">+ Resep RS</span>
+              </Button>
             </div>
          </div>
       </div>
 
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-4">
-        {/* Graph Section */}
-        <Card className="lg:col-span-3 border-none shadow-sm rounded-xl bg-white p-6">
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h3 className="text-base font-bold text-slate-900">Grafik Penjualan Bulanan</h3>
-              <p className="text-[11px] text-slate-400 font-medium">Statistik performa optik 6 bulan terakhir</p>
+      <div className="space-y-6">
+        <Card className="border-none shadow-sm rounded-xl bg-white p-6">
+          <Tabs defaultValue="chart" className="w-full">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6 border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="text-base font-extrabold text-slate-800 tracking-tight">Monitoring Aktivitas Toko</h3>
+                <p className="text-[11px] text-slate-400 font-medium">Pantau grafik performa dan riwayat penjualan terbaru</p>
+              </div>
+              <TabsList className="bg-slate-100 p-1.5 rounded-xl flex gap-1 w-fit border border-slate-200/50 shadow-sm">
+                <TabsTrigger value="chart" className="rounded-lg px-4 py-2 font-bold text-xs uppercase tracking-wider data-[state=active]:bg-white data-[state=active]:text-[#1a2b3c] data-[state=active]:shadow-sm transition-all flex items-center gap-1.5">
+                  <TrendingUp className="h-3.5 w-3.5 text-[#00a39d]" /> Grafik Penjualan
+                </TabsTrigger>
+                <TabsTrigger value="transactions" className="rounded-lg px-4 py-2 font-bold text-xs uppercase tracking-wider data-[state=active]:bg-white data-[state=active]:text-[#1a2b3c] data-[state=active]:shadow-sm transition-all flex items-center gap-1.5">
+                  <Clock className="h-3.5 w-3.5 text-indigo-500" /> Transaksi Terbaru
+                </TabsTrigger>
+              </TabsList>
             </div>
-            <div className="flex gap-4">
-               <div className="flex items-center gap-2">
-                 <div className="h-2 w-2 rounded-full bg-[#00a39d]"></div>
-                 <span className="text-[10px] font-bold text-slate-400">Umum</span>
-               </div>
-               <div className="flex items-center gap-2">
-                 <div className="h-2 w-2 rounded-full bg-sky-500"></div>
-                 <span className="text-[10px] font-bold text-slate-400">BPJS</span>
-               </div>
-            </div>
-          </div>
-          <div className="h-[350px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={metrics.trends || []}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 10, fontWeight: 600, fill: '#94a3b8' }}
-                  dy={10}
-                />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 10, fontWeight: 600, fill: '#94a3b8' }}
-                />
-                <Tooltip 
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                  itemStyle={{ fontSize: '11px', fontWeight: 700 }}
-                  formatter={(value: any) => `Rp ${value.toLocaleString('id-ID')}`}
-                />
-                <Line type="monotone" dataKey="umum" name="Umum" stroke="#00a39d" strokeWidth={3} dot={{ r: 4, fill: '#00a39d', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
-                <Line type="monotone" dataKey="bpjs" name="BPJS" stroke="#0ea5e9" strokeWidth={3} dot={{ r: 4, fill: '#0ea5e9', strokeWidth: 2, stroke: '#fff' }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+
+            <TabsContent value="chart" className="outline-none">
+              <div className="flex justify-end gap-4 mb-4">
+                 <div className="flex items-center gap-2">
+                   <div className="h-2 w-2 rounded-full bg-[#00a39d]"></div>
+                   <span className="text-[10px] font-bold text-slate-400">Umum</span>
+                 </div>
+                 <div className="flex items-center gap-2">
+                   <div className="h-2 w-2 rounded-full bg-sky-500"></div>
+                   <span className="text-[10px] font-bold text-slate-400">BPJS</span>
+                 </div>
+              </div>
+              <div className="h-[320px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={metrics.trends || []}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis 
+                      dataKey="name" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fontSize: 10, fontWeight: 600, fill: '#94a3b8' }}
+                      dy={10}
+                    />
+                    <YAxis 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fontSize: 10, fontWeight: 600, fill: '#94a3b8' }}
+                    />
+                    <Tooltip 
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                      itemStyle={{ fontSize: '11px', fontWeight: 700 }}
+                      formatter={(value: any) => `Rp ${value.toLocaleString('id-ID')}`}
+                    />
+                    <Line type="monotone" dataKey="umum" name="Umum" stroke="#00a39d" strokeWidth={3} dot={{ r: 4, fill: '#00a39d', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
+                    <Line type="monotone" dataKey="bpjs" name="BPJS" stroke="#0ea5e9" strokeWidth={3} dot={{ r: 4, fill: '#0ea5e9', strokeWidth: 2, stroke: '#fff' }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="transactions" className="outline-none">
+              <div className="overflow-x-auto min-h-[320px]">
+                <table className="w-full text-left text-xs font-semibold text-slate-600">
+                  <thead>
+                    <tr className="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                      <th className="py-3 px-2">No. Invoice</th>
+                      <th className="py-3 px-2">Customer</th>
+                      <th className="py-3 px-2">Tanggal</th>
+                      <th className="py-3 px-2">Total Tagihan</th>
+                      <th className="py-3 px-2">Status</th>
+                      <th className="py-3 px-2 text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {metrics.recent_orders?.length > 0 ? (
+                      metrics.recent_orders.map((order: any) => {
+                        const invoice = order.invoices?.[0];
+                        const total = invoice?.total_amount || order.total_amount || 0;
+                        const remaining = invoice?.remaining ?? 0;
+                        const isLunas = remaining === 0;
+                        return (
+                          <tr key={order.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                            <td className="py-4 px-2 font-mono text-slate-900 font-bold">
+                              {invoice?.invoice_number || "Draft"}
+                            </td>
+                            <td className="py-4 px-2">
+                              <div className="flex flex-col">
+                                <span className="font-bold text-slate-800 text-sm">{order.patient?.name || "Pasien Umum"}</span>
+                                <span className="text-[10px] text-slate-400">{order.patient?.phone || "—"}</span>
+                              </div>
+                            </td>
+                            <td className="py-4 px-2 text-slate-500 font-medium">
+                              {new Date(order.order_date).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            </td>
+                            <td className="py-4 px-2 text-slate-900 font-bold">
+                              Rp {total.toLocaleString('id-ID')}
+                            </td>
+                            <td className="py-4 px-2">
+                              {isLunas ? (
+                                <span className="bg-emerald-100 text-emerald-800 text-[9px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider">Lunas</span>
+                              ) : (
+                                <span className="bg-amber-100 text-amber-800 text-[9px] font-bold px-2.5 py-1 rounded-lg uppercase tracking-wider">DP (Sisa: Rp {remaining.toLocaleString('id-ID')})</span>
+                              )}
+                            </td>
+                            <td className="py-4 px-2 text-right">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setOrderIdForPrint(order.id)
+                                  setIsPrintOpen(true)
+                                }}
+                                className="h-8 rounded-lg font-bold text-xs hover:bg-[#00a39d]/10 hover:text-[#00a39d] transition-colors"
+                              >
+                                Cetak Nota
+                              </Button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan={6} className="py-12 text-center text-slate-400 font-bold">
+                          Belum ada transaksi terbaru hari ini.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </TabsContent>
+          </Tabs>
         </Card>
 
-        {/* Quick Actions Card */}
-        <Card className="bg-[#1a2b3c] border-none shadow-sm rounded-xl p-6 text-white overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-sky-400/5 rounded-full blur-3xl -mr-16 -mt-16"></div>
-          <h3 className="text-sm font-bold mb-6 italic uppercase tracking-tighter">Layanan Cepat</h3>
-          <div className="space-y-3 relative z-10">
-            <Button 
-              onClick={() => router.push('/orders')}
-              className="w-full justify-start gap-4 bg-emerald-500 hover:bg-emerald-400 text-white border-none h-14 rounded-2xl font-black italic uppercase text-[11px] shadow-lg shadow-emerald-500/20 transition-all hover:scale-[1.02] active:scale-95"
-            >
-              <div className="bg-white/20 p-2 rounded-lg">
-                <ShoppingCart className="h-4 w-4" />
-              </div>
-              <span>+ Transaksi Baru</span>
-            </Button>
-            
-            <Button 
-              onClick={() => setIsNewPatientOpen(true)}
-              className="w-full justify-start gap-4 bg-white/10 hover:bg-white/20 text-white border-white/5 h-14 rounded-2xl font-black italic uppercase text-[11px] transition-all hover:scale-[1.02] active:scale-95"
-            >
-              <div className="bg-white/10 p-2 rounded-lg">
-                <Plus className="h-4 w-4" />
-              </div>
-              <span>+ Registrasi Pasien</span>
-            </Button>
+      </div>
 
-            <Button 
-              onClick={() => router.push('/prescriptions')}
-              className="w-full justify-start gap-4 bg-[#00a39d] hover:bg-[#008f8a] text-white h-14 rounded-2xl font-black italic uppercase text-[11px] shadow-lg shadow-teal-500/20 transition-all hover:scale-[1.02]"
-            >
-              <div className="bg-white/20 p-2 rounded-lg">
-                <FileText className="h-4 w-4" />
-              </div>
-              <span>+ Input Resep RS</span>
-            </Button>
-
-            <div className="pt-6 border-t border-white/5 mt-6 grid grid-cols-2 gap-2">
-               <button onClick={() => router.push('/patients')} className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-white/5 transition-all text-slate-400 hover:text-white">
-                  <Users className="h-5 w-5" />
-                  <span className="text-[9px] font-bold uppercase tracking-widest">Database</span>
-               </button>
-               <button onClick={() => router.push('/orders')} className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-white/5 transition-all text-slate-400 hover:text-white">
-                  <Clock className="h-5 w-5" />
-                  <span className="text-[9px] font-bold uppercase tracking-widest">Riwayat</span>
-               </button>
-            </div>
-          </div>
-          
-          <div className="mt-8 p-4 rounded-xl bg-gradient-to-br from-white/5 to-white/0 border border-white/5">
-            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Status Sistem</p>
-            <p className="text-[10px] leading-relaxed text-slate-300 font-medium">Terminal Optik88 Online & Terkoneksi</p>
-          </div>
-        </Card>
+      {/* POS Transaction Terminal below dashboard charts/monitoring */}
+      <div id="pos-section" className="mt-8 pt-8 border-t border-slate-200">
+        <POSTerminal />
       </div>
 
       {/* Dialogs */}
